@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project name="Arfaxad" default="jar">
+	<loadproperties srcfile="project.properties" />
+	<property name="main.class" value="com.akshor.pjt33.arfaxad.Arfaxad" />
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build" />
+	<property name="dist.dir" value="dist" />
+
+	<target name="compile" description="Compile all sources.">
+		<mkdir dir="${build.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" debug="on" deprecation="on" includeantruntime="no">
+			<compilerarg value="-Xlint" />
+		</javac>
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}" excludes="**/*.java" />
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile" description="Generate the jarfile distributable.">
+		<mkdir dir="${dist.dir}" />
+		<jar destfile="${dist.dir}/arfaxad-${version}.jar" basedir="${build.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main.class}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="run" depends="compile" description="Run the application.">
+		<java classname="${main.class}" classpath="${build.dir}" fork="yes" />
+	</target>
+
+	<target name="clean" description="Delete all generated files.">
+		<delete dir="${build.dir}" />
+	</target>
+</project>
