@@ -99,9 +99,6 @@ public class Arfaxad
 			JComponent.setDefaultLocale(profile.locale);
 		}
 
-		// There's no sense in showing a non-existent logo
-		if (profile.logo == null) currentMC.setMainRenderer(new SongRenderer());
-
 		// Load song database
 		songs = new TreeSet<Song>();
 		songs.addAll(profile.loadSongs());

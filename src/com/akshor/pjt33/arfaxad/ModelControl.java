@@ -15,7 +15,7 @@ public class ModelControl
 	private boolean showCopyright;
 	private javax.swing.Timer timer;
 	private Font font;
-	private Renderer mainRenderer = new SongRenderer();
+	private final SongRenderer mainRenderer = new SongRenderer();
 	private Renderer specialRenderer;
 	// WeakHashSets.
 	private WeakHashMap<View, Void> views = new WeakHashMap<View, Void>();
@@ -48,6 +48,7 @@ public class ModelControl
 		SongEvent evt = new SongEvent(s);
 		for (SongListener cl : listeners.keySet())
 			cl.songChanged(evt);
+		mainRenderer.reset();
 
 		// Log copyright.
 		if (this == Arfaxad.currentMC && getRenderer() instanceof SongRenderer &&
@@ -117,18 +118,6 @@ public class ModelControl
 
 	public Renderer getRenderer() {
 		return specialRenderer == null ? mainRenderer : specialRenderer;
-	}
-
-	public void setMainRenderer(Renderer renderer) {
-		mainRenderer = renderer;
-		for (View view : views.keySet())
-			view.refresh(false);
-
-		// Log copyright.
-		if (this == Arfaxad.currentMC && renderer instanceof SongRenderer &&
-		    Arfaxad.profile != null && Arfaxad.profile.log != null) {
-			Arfaxad.profile.log.log(song);
-		}
 	}
 
 	public boolean toggleSpecialRenderer(Renderer renderer) {

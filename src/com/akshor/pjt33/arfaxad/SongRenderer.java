@@ -12,7 +12,13 @@ public class SongRenderer extends Renderer
 	private Font f100;
 	private FontMetrics fm100;
 	private Map<Rectangle2D, Font> scaledFonts = new HashMap<Rectangle2D, Font>();
-	private WeakReference<Song> fontCacheSong;
+
+	/**
+	 * Clears the cached font sizes for the current song.
+	 */
+	void reset() {
+		scaledFonts.clear();
+	}
 
 	@Override
 	public void render(Graphics2D g2d, Profile p, ModelControl mc) {
@@ -82,14 +88,12 @@ public class SongRenderer extends Renderer
 
 	private Font selectFont(Graphics2D g2d, Profile p, Song song) {
 		Rectangle2D r2d = g2d.getClipBounds();
-		Font f = null;
-		if (fontCacheSong != null && song == fontCacheSong.get()) f = scaledFonts.get(r2d);
-		else fontCacheSong = new WeakReference<Song>(song);
+		Font f = scaledFonts.get(r2d);
 		if (f != null) return f;
 
 		float wWithoutMargin = (float)r2d.getWidth();
 		float hWithoutMargin = (float)r2d.getHeight();
-		FontRenderContext frc = g2d.getFontRenderContext();
+		FontRenderContext frc = g2d.getFontMetrics(f100).getFontRenderContext();
 
 		// Obtain a suitably sized font
 		int h = fm100.getHeight();
@@ -109,6 +113,8 @@ public class SongRenderer extends Renderer
 		float sizeW = 99 * wWithoutMargin / wmax;
 		float sizeH = 99 * hWithoutMargin / hmax;
 		float size = sizeW < sizeH ? sizeW : sizeH;
+
+		// TODO This calculation should take into account the screen size vs the assumed 1024x768
 		if (size > p.maxSize) size = p.maxSize;
 
 		f = f100.deriveFont(size);
