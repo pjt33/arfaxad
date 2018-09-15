@@ -9,7 +9,7 @@ import javax.swing.text.Position;
  * JList allows typing a prefix of an element to search for the element, but the way it does it isn't suited to
  * languages with accents. This class redefines the method that does the search to use a Collator.
  */
-public class JCollatedList extends JList
+public class JCollatedList<E> extends JList<E>
 {
 	private static final long serialVersionUID = -4706509093188259378L;
 
@@ -20,21 +20,21 @@ public class JCollatedList extends JList
 
 	public JCollatedList() {}
 
-	public JCollatedList(ListModel dataModel) {
+	public JCollatedList(ListModel<E> dataModel) {
 		super(dataModel);
 	}
 
-	public JCollatedList(Object[] listData) {
+	public JCollatedList(E[] listData) {
 		super(listData);
 	}
 
-	public JCollatedList(Vector<?> listData) {
+	public JCollatedList(Vector<? extends E> listData) {
 		super(listData);
 	}
 
 	@Override
 	public int getNextMatch(String prefix, int startIdx, Position.Bias dir) {
-		ListModel model = getModel();
+		ListModel<E> model = getModel();
 		int max = model.getSize();
 		if (prefix == null) throw new IllegalArgumentException();
 		if (startIdx < 0 || startIdx >= max) throw new IllegalArgumentException();

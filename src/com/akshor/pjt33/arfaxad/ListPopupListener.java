@@ -33,7 +33,7 @@ public class ListPopupListener extends MouseAdapter
 	private void show(MouseEvent evt) {
 		Component c = evt.getComponent();
 		if (!(c instanceof JList)) return;
-		JList list = (JList)c;
+		JList<?> list = (JList<?>)c;
 		int idx = list.locationToIndex(evt.getPoint());
 		if (idx == -1) return;
 		list.setSelectedIndex(idx);

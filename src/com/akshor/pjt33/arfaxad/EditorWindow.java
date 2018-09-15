@@ -192,7 +192,7 @@ public class EditorWindow extends JFrame
 				mw.deleteSongFromLists(original);
 
 				// Replace in the song schedule
-				DefaultListModel lm = mw.scheduleLM;
+				DefaultListModel<Song> lm = mw.scheduleLM;
 				for (int i = lm.getSize() - 1; i >= 0; i--) {
 					if (original.equals(lm.getElementAt(i))) lm.set(i, song);
 				}
@@ -202,10 +202,10 @@ public class EditorWindow extends JFrame
 			}
 
 			Arfaxad.songs.add(song);
-			DefaultListModel songsLM = (DefaultListModel)mw.allSongs.getModel();
+			DefaultListModel<Song> songsLM = (DefaultListModel<Song>)mw.allSongs.getModel();
 			insert(songsLM, song);
 
-			DefaultListModel slidesLM = (DefaultListModel)mw.allSlides.getModel();
+			DefaultListModel<Song.Slide> slidesLM = (DefaultListModel<Song.Slide>)mw.allSlides.getModel();
 			for (Song.Slide slide : song.slides)
 				insert(slidesLM, slide);
 
@@ -245,20 +245,20 @@ public class EditorWindow extends JFrame
 	}
 
 	@SuppressWarnings(value = { "unchecked" })
-	private <T> void insert(DefaultListModel lm, Comparable<T> obj) {
+	private <T extends Comparable<T>> void insert(DefaultListModel<T> lm, T obj) {
 		int len = lm.getSize();
 		if (len == 0) {
 			lm.addElement(obj);
 			return;
 		}
-		if (obj.compareTo((T)lm.get(0)) < 0) lm.insertElementAt(obj, 0);
-		else if (obj.compareTo((T)lm.get(len - 1)) > 0) lm.insertElementAt(obj, len);
+		if (obj.compareTo(lm.get(0)) < 0) lm.insertElementAt(obj, 0);
+		else if (obj.compareTo(lm.get(len - 1)) > 0) lm.insertElementAt(obj, len);
 		else {
 			int lt = 0;
 			int gt = len - 1;
 			while (gt - lt > 1) {
 				int mid = (lt + gt) >> 1;
-				int cmp = obj.compareTo((T)lm.get(mid));
+				int cmp = obj.compareTo(lm.get(mid));
 				if (cmp == 0) return;
 				else if (cmp < 0) gt = mid;
 				else lt = mid;

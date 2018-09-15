@@ -11,11 +11,11 @@ public class MainWindow extends JFrame
 {
 	private static final long serialVersionUID = -2149499588279041235L;
 
-	JList allSongs;
-	JList allSlides;
+	JList<Song> allSongs;
+	JList<Song.Slide> allSlides;
 	JTabbedPane search;
-	DefaultListModel scheduleLM;
-	JList scheduleList;
+	DefaultListModel<Song> scheduleLM;
+	JList<Song> scheduleList;
 	int scheduleIdx;
 	// Important: this is the only hard reference to this object
 	transient SongListener songListener;
@@ -147,8 +147,8 @@ public class MainWindow extends JFrame
 
 		// Schedule
 		JPanel schedule = new JPanel();
-		scheduleLM = new DefaultListModel();
-		scheduleList = new JList(scheduleLM);
+		scheduleLM = new DefaultListModel<Song>();
+		scheduleList = new JList<Song>(scheduleLM);
 		scheduleList.setName("scheduleList");
 		scheduleList.addMouseListener(popupLeft);
 		scheduleList.addFocusListener(new BorderChanger(schedule));
@@ -197,14 +197,14 @@ public class MainWindow extends JFrame
 		scheduleList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				scheduleIdx = scheduleList.getSelectedIndex();
-				if (scheduleIdx != -1) Arfaxad.nextMC.setSong((Song)scheduleList.getSelectedValue(), 0, null);
+				if (scheduleIdx != -1) Arfaxad.nextMC.setSong(scheduleList.getSelectedValue(), 0, null);
 			}
 		});
 		scheduleList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
-					Arfaxad.currentMC.setSong((Song)scheduleList.getSelectedValue(), 0, null);
+					Arfaxad.currentMC.setSong(scheduleList.getSelectedValue(), 0, null);
 				}
 			}
 		});
@@ -244,15 +244,15 @@ public class MainWindow extends JFrame
 				e.consume();
 			}
 		});
-		DefaultListModel lmSongs = new DefaultListModel();
-		for (Object obj : Arfaxad.songs)
+		DefaultListModel<Song> lmSongs = new DefaultListModel<Song>();
+		for (Song obj : Arfaxad.songs)
 			lmSongs.addElement(obj);
-		allSongs = new JCollatedList(lmSongs);
+		allSongs = new JCollatedList<Song>(lmSongs);
 		allSongs.setName("allSongs");
 		allSongs.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		allSongs.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				Song song = (Song)allSongs.getSelectedValue();
+				Song song = allSongs.getSelectedValue();
 				if (song != null) Arfaxad.nextMC.setSong(song, 0, null);
 				scheduleIdx = -1;
 				scheduleList.clearSelection();
@@ -263,7 +263,7 @@ public class MainWindow extends JFrame
 			@Override
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
-					Arfaxad.currentMC.setSong((Song)allSongs.getSelectedValue(), 0, null);
+					Arfaxad.currentMC.setSong(allSongs.getSelectedValue(), 0, null);
 				}
 			}
 		});
@@ -292,16 +292,16 @@ public class MainWindow extends JFrame
 			slides.addAll(song.slides);
 		}
 		Collections.sort(slides);
-		DefaultListModel lmSlides = new DefaultListModel();
-		for (Object obj : slides)
+		DefaultListModel<Song.Slide> lmSlides = new DefaultListModel<Song.Slide>();
+		for (Song.Slide obj : slides)
 			lmSlides.addElement(obj);
-		allSlides = new JCollatedList(lmSlides);
+		allSlides = new JCollatedList<Song.Slide>(lmSlides);
 		allSlides.setName("allSlides");
 		allSlides.addMouseListener(popupLeft);
 		allSlides.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		allSlides.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				Song.Slide slide = (Song.Slide)allSlides.getSelectedValue();
+				Song.Slide slide = allSlides.getSelectedValue();
 				if (slide != null) Arfaxad.nextMC.setSong(slide.song(), slide.slide(), null);
 				scheduleIdx = -1;
 				scheduleList.clearSelection();
@@ -311,7 +311,7 @@ public class MainWindow extends JFrame
 			@Override
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
-					Song.Slide slide = (Song.Slide)allSlides.getSelectedValue();
+					Song.Slide slide = allSlides.getSelectedValue();
 					if (slide != null) Arfaxad.currentMC.setSong(slide.song(), slide.slide(), null);
 				}
 			}
@@ -327,7 +327,7 @@ public class MainWindow extends JFrame
 					break;
 
 				case VK_PLUS:
-					Song.Slide slide = (Song.Slide)allSlides.getSelectedValue();
+					Song.Slide slide = allSlides.getSelectedValue();
 					if (slide != null) scheduleLM.addElement(slide.song());
 					e.consume();
 					break;
@@ -486,7 +486,7 @@ public class MainWindow extends JFrame
 			scheduleIdx++;
 			if (scheduleIdx < scheduleLM.size()) {
 				scheduleList.setSelectedIndex(scheduleIdx);
-				Arfaxad.nextMC.setSong((Song)scheduleList.getSelectedValue(), 0, null);
+				Arfaxad.nextMC.setSong(scheduleList.getSelectedValue(), 0, null);
 			}
 			else {
 				scheduleIdx = -1;
@@ -500,8 +500,8 @@ public class MainWindow extends JFrame
 		int i = scheduleList.getSelectedIndex();
 		if (i > 0) {
 			// Better like this than with remove and add because DefaultListModel uses Vector
-			Object a = scheduleLM.get(i - 1);
-			Object b = scheduleLM.get(i);
+			Song a = scheduleLM.get(i - 1);
+			Song b = scheduleLM.get(i);
 			scheduleLM.set(i, a);
 			scheduleLM.set(i - 1, b);
 			scheduleList.setSelectedIndex(i - 1);
@@ -513,8 +513,8 @@ public class MainWindow extends JFrame
 		int i = scheduleList.getSelectedIndex();
 		if (i < scheduleLM.size() - 1) {
 			// Better like this than with remove and add because DefaultListModel uses Vector
-			Object a = scheduleLM.get(i + 1);
-			Object b = scheduleLM.get(i);
+			Song a = scheduleLM.get(i + 1);
+			Song b = scheduleLM.get(i);
 			scheduleLM.set(i, a);
 			scheduleLM.set(i + 1, b);
 			scheduleList.setSelectedIndex(i + 1);
@@ -538,7 +538,7 @@ public class MainWindow extends JFrame
 
 		if (selectedItem instanceof Song.Slide) selectedItem = ((Song.Slide)selectedItem).song();
 
-		if (selectedItem instanceof Song) scheduleLM.addElement(selectedItem);
+		if (selectedItem instanceof Song) scheduleLM.addElement((Song)selectedItem);
 		else if (selectedItem != null) throw new IllegalStateException(selectedItem.getClass().getName());
 	}
 
@@ -550,15 +550,15 @@ public class MainWindow extends JFrame
 	void deleteSongFromLists(Song song) {
 		// TODO Make this more efficient (log n).
 		// Remove song from allSongs
-		DefaultListModel lm = (DefaultListModel)allSongs.getModel();
-		for (int i = lm.getSize() - 1; i >= 0; i--) {
-			if (song.equals(lm.getElementAt(i))) lm.removeElementAt(i);
+		DefaultListModel<Song> lmSong = (DefaultListModel<Song>)allSongs.getModel();
+		for (int i = lmSong.getSize() - 1; i >= 0; i--) {
+			if (song.equals(lmSong.getElementAt(i))) lmSong.removeElementAt(i);
 		}
 
 		// Remove slides from allSlides.
-		lm = (DefaultListModel)allSlides.getModel();
-		for (int i = lm.getSize() - 1; i >= 0; i--) {
-			if (song.equals(((Song.Slide)lm.getElementAt(i)).song())) lm.removeElementAt(i);
+		DefaultListModel<Song.Slide> lmSlide = (DefaultListModel<Song.Slide>)allSlides.getModel();
+		for (int i = lmSlide.getSize() - 1; i >= 0; i--) {
+			if (song.equals((lmSlide.getElementAt(i)).song())) lmSlide.removeElementAt(i);
 		}
 	}
 }
