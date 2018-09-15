@@ -97,6 +97,7 @@ public class Arfaxad
 			Locale.setDefault(profile.locale);
 			resources = ResourceBundle.getBundle("com.akshor.pjt33.arfaxad.arfaxad");
 			JComponent.setDefaultLocale(profile.locale);
+			Collation.reload();
 		}
 
 		// Load song database

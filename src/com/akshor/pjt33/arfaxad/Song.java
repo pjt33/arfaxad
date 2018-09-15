@@ -45,8 +45,6 @@ public class Song implements Comparable<Song>
 	private static final String ATTR_TITLE = "title";
 	private static final String ATTR_YEAR = "year";
 
-	private static Collator sharedCollator;
-
 	/** Justification types */
 	public static final int DEFAULT_JUSTIFICATION = 0;
 	public static final int JUSTIFY_LEFT = 1;
@@ -78,12 +76,6 @@ public class Song implements Comparable<Song>
 	/** Text colour */
 	public String colourName;
 	public Color colour = Color.WHITE;
-
-	private static Collator getCollator() {
-		// TODO Do we need to handle changes of locale?
-		if (sharedCollator == null) sharedCollator = Collator.getInstance();
-		return sharedCollator;
-	}
 
 	/** Loads a song from a file, or returns null on error. */
 	public static Song loadSong(File file) {
@@ -264,7 +256,7 @@ public class Song implements Comparable<Song>
 
 	public int compareTo(Song s) {
 		if (equals(s)) return 0;
-		Collator coll = getCollator();
+		Collator coll = Collation.active();
 		if (titleCK == null) titleCK = coll.getCollationKey(title);
 		if (s.titleCK == null) s.titleCK = coll.getCollationKey(s.title);
 		int cmp = titleCK.compareTo(s.titleCK);
@@ -369,7 +361,7 @@ public class Song implements Comparable<Song>
 		}
 
 		public int compareTo(Slide d) {
-			Collator coll = getCollator();
+			Collator coll = Collation.active();
 
 			int i = coll.compare(toString(), d.toString());
 			if (i != 0) return i;

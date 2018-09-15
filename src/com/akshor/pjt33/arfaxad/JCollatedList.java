@@ -38,6 +38,7 @@ public class JCollatedList<E> extends JList<E>
 		int max = model.getSize();
 		if (prefix == null) throw new IllegalArgumentException();
 		if (startIdx < 0 || startIdx >= max) throw new IllegalArgumentException();
+		RuleBasedCollator c = (RuleBasedCollator)Collation.active();
 		CollationElementIterator preCEI = c.getCollationElementIterator(prefix);
 		CollationElementIterator cei = c.getCollationElementIterator("");
 
