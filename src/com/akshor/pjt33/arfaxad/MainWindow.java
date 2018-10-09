@@ -11,8 +11,7 @@ public class MainWindow extends JFrame
 {
 	private static final long serialVersionUID = -2149499588279041235L;
 
-	JList<Song> allSongs;
-	JList<Song.Slide> allSlides;
+	JList<Bookmark> bookmarks;
 	JTabbedPane search;
 	DefaultListModel<Song> scheduleLM;
 	JList<Song> scheduleList;
@@ -244,30 +243,35 @@ public class MainWindow extends JFrame
 				e.consume();
 			}
 		});
-		DefaultListModel<Song> lmSongs = new DefaultListModel<Song>();
-		for (Song obj : Arfaxad.songs)
-			lmSongs.addElement(obj);
-		allSongs = new JCollatedList<Song>(lmSongs);
-		allSongs.setName("allSongs");
-		allSongs.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		allSongs.addListSelectionListener(new ListSelectionListener() {
+		java.util.List<Bookmark> allBookmarks = new ArrayList<Bookmark>();
+		for (Song song : Arfaxad.songs)
+			allBookmarks.addAll(song.bookmarks());
+		Collections.sort(allBookmarks, Bookmark.COMPARATOR);
+		DefaultListModel<Bookmark> lmBookmarks = new DefaultListModel<Bookmark>();
+		for (Bookmark bookmark : allBookmarks)
+			lmBookmarks.addElement(bookmark);
+		bookmarks = new JCollatedList<Bookmark>(lmBookmarks);
+		bookmarks.setName("bookmarks");
+		bookmarks.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		bookmarks.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				Song song = allSongs.getSelectedValue();
-				if (song != null) Arfaxad.nextMC.setSong(song, 0, null);
+				Bookmark bookmark = bookmarks.getSelectedValue();
+				if (bookmark != null) Arfaxad.nextMC.setSong(bookmark.song(), bookmark.slide(), null);
 				scheduleIdx = -1;
 				scheduleList.clearSelection();
 			}
 		});
-		allSongs.addMouseListener(popupLeft);
-		allSongs.addMouseListener(new MouseAdapter() {
+		bookmarks.addMouseListener(popupLeft);
+		bookmarks.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
-					Arfaxad.currentMC.setSong(allSongs.getSelectedValue(), 0, null);
+					Bookmark bookmark = bookmarks.getSelectedValue();
+					if (bookmark != null) Arfaxad.currentMC.setSong(bookmark.song(), bookmark.slide(), null);
 				}
 			}
 		});
-		allSongs.addKeyListener(new KeyAdapter() {
+		bookmarks.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				int c = e.getKeyCode();
@@ -282,71 +286,12 @@ public class MainWindow extends JFrame
 				}
 			}
 		});
-		JScrollPane jspSongs = new JScrollPane(allSongs,
+		JScrollPane jspSongs = new JScrollPane(bookmarks,
 		                                       JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 		                                       JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		allSongs.addFocusListener(new BorderChanger(jspSongs));
+		bookmarks.addFocusListener(new BorderChanger(jspSongs));
 
-		ArrayList<Song.Slide> slides = new ArrayList<Song.Slide>();
-		for (Song song : Arfaxad.songs) {
-			slides.addAll(song.slides);
-		}
-		Collections.sort(slides);
-		DefaultListModel<Song.Slide> lmSlides = new DefaultListModel<Song.Slide>();
-		for (Song.Slide obj : slides)
-			lmSlides.addElement(obj);
-		allSlides = new JCollatedList<Song.Slide>(lmSlides);
-		allSlides.setName("allSlides");
-		allSlides.addMouseListener(popupLeft);
-		allSlides.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		allSlides.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
-				Song.Slide slide = allSlides.getSelectedValue();
-				if (slide != null) Arfaxad.nextMC.setSong(slide.song(), slide.slide(), null);
-				scheduleIdx = -1;
-				scheduleList.clearSelection();
-			}
-		});
-		allSlides.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent evt) {
-				if (evt.getClickCount() == 2) {
-					Song.Slide slide = allSlides.getSelectedValue();
-					if (slide != null) Arfaxad.currentMC.setSong(slide.song(), slide.slide(), null);
-				}
-			}
-		});
-		allSlides.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int c = e.getKeyCode();
-				switch (c) {
-				case VK_PAGE_DOWN:
-					nextSong();
-					e.consume();
-					break;
-
-				case VK_PLUS:
-					Song.Slide slide = allSlides.getSelectedValue();
-					if (slide != null) scheduleLM.addElement(slide.song());
-					e.consume();
-					break;
-
-				default:
-					break;
-				}
-			}
-		});
-		JScrollPane jspSlides = new JScrollPane(allSlides,
-		                                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-		                                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		allSlides.addFocusListener(new BorderChanger(jspSlides));
-
-		search = new JTabbedPane();
-		search.add(jspSongs, Arfaxad.resources.getString("tab.search.titles"));
-		search.add(jspSlides, Arfaxad.resources.getString("tab.search.first.lines"));
-
-		JSplitPane jspLeft = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, schedule, search);
+		JSplitPane jspLeft = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, schedule, jspSongs);
 		jspLeft.setDividerLocation(0.6);
 		jspLeft.setResizeWeight(0.6);
 		containerLeft.setLayout(new GridBagLayout());
@@ -523,23 +468,8 @@ public class MainWindow extends JFrame
 	}
 
 	private void addSelected() {
-		Object selectedItem;
-		switch (search.getSelectedIndex()) {
-		case 0:
-			selectedItem = allSongs.getSelectedValue();
-			break;
-		case 1:
-			selectedItem = allSlides.getSelectedValue();
-			break;
-		default:
-			selectedItem = null;
-			break;
-		}
-
-		if (selectedItem instanceof Song.Slide) selectedItem = ((Song.Slide)selectedItem).song();
-
-		if (selectedItem instanceof Song) scheduleLM.addElement((Song)selectedItem);
-		else if (selectedItem != null) throw new IllegalStateException(selectedItem.getClass().getName());
+		Bookmark bookmark = bookmarks.getSelectedValue();
+		if (bookmark != null) scheduleLM.addElement(bookmark.song());
 	}
 
 	private void removeSelected() {
@@ -549,16 +479,10 @@ public class MainWindow extends JFrame
 
 	void deleteSongFromLists(Song song) {
 		// TODO Make this more efficient (log n).
-		// Remove song from allSongs
-		DefaultListModel<Song> lmSong = (DefaultListModel<Song>)allSongs.getModel();
+		// Remove song from bookmarks
+		DefaultListModel<Bookmark> lmSong = (DefaultListModel<Bookmark>)bookmarks.getModel(); // TODO Why not store a direct reference?
 		for (int i = lmSong.getSize() - 1; i >= 0; i--) {
-			if (song.equals(lmSong.getElementAt(i))) lmSong.removeElementAt(i);
-		}
-
-		// Remove slides from allSlides.
-		DefaultListModel<Song.Slide> lmSlide = (DefaultListModel<Song.Slide>)allSlides.getModel();
-		for (int i = lmSlide.getSize() - 1; i >= 0; i--) {
-			if (song.equals((lmSlide.getElementAt(i)).song())) lmSlide.removeElementAt(i);
+			if (song.equals(lmSong.getElementAt(i).song())) lmSong.removeElementAt(i);
 		}
 	}
 }

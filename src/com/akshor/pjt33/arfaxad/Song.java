@@ -12,7 +12,7 @@ import org.w3c.dom.*;
 /**
  * The lyrics of a song, the most important data.
  */
-public class Song implements Comparable<Song>
+public class Song implements Bookmark
 {
 	private static DocumentBuilder db;
 	static {
@@ -254,15 +254,29 @@ public class Song implements Comparable<Song>
 		return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 	}
 
-	public int compareTo(Song s) {
-		if (equals(s)) return 0;
-		Collator coll = Collation.active();
-		if (titleCK == null) titleCK = coll.getCollationKey(title);
-		if (s.titleCK == null) s.titleCK = coll.getCollationKey(s.title);
-		int cmp = titleCK.compareTo(s.titleCK);
-		if (cmp != 0) return cmp;
-		// TODO
-		return -1;
+	public Collection<Bookmark> bookmarks() {
+		Collection<Bookmark> bookmarks = new ArrayList<Bookmark>(1 + slides.size());
+		bookmarks.add(this);
+		for (Slide slide : slides) {
+			// Special-case first slide if it coincides with the title.
+			if (slide.slide() == 0 && collationKey().compareTo(slide.collationKey()) == 0) continue;
+
+			bookmarks.add(slide);
+		}
+		return bookmarks;
+	}
+
+	public Song song() {
+		return this;
+	}
+
+	public CollationKey collationKey() {
+		if (titleCK == null) titleCK = Collation.active().getCollationKey(title);
+		return titleCK;
+	}
+
+	public int slide() {
+		return 0;
 	}
 
 	public int slide(String cmd) {
@@ -330,12 +344,13 @@ public class Song implements Comparable<Song>
 	/**
 	 * Each song consists of various slides.
 	 */
-	public class Slide implements Comparable<Slide>
+	public class Slide implements Bookmark
 	{
 		public SlideType type;
 		public List<AttributedText> lines = new LinkedList<AttributedText>();
 		public String backgroundSrc;
 		public BufferedImage background;
+		private transient CollationKey collationKey;
 
 		public Slide(SlideType t) {
 			type = t;
@@ -351,6 +366,11 @@ public class Song implements Comparable<Song>
 			return Song.this;
 		}
 
+		public CollationKey collationKey() {
+			if (collationKey == null) collationKey = Collation.active().getCollationKey(toString());
+			return collationKey;
+		}
+
 		public int slide() {
 			int i = 0;
 			for (Slide slide : Song.this.slides) {
@@ -358,16 +378,6 @@ public class Song implements Comparable<Song>
 				i++;
 			}
 			return -1;
-		}
-
-		public int compareTo(Slide d) {
-			Collator coll = Collation.active();
-
-			int i = coll.compare(toString(), d.toString());
-			if (i != 0) return i;
-			i = song().compareTo(d.song());
-			if (i != 0) return i;
-			return slide() - d.slide();
 		}
 
 		public void setProperties(String props) {

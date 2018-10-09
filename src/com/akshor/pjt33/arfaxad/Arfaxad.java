@@ -101,7 +101,7 @@ public class Arfaxad
 		}
 
 		// Load song database
-		songs = new TreeSet<Song>();
+		songs = new TreeSet<Song>(Bookmark.COMPARATOR);
 		songs.addAll(profile.loadSongs());
 
 		// Do this properly to avoid problems

@@ -202,16 +202,12 @@ public class EditorWindow extends JFrame
 			}
 
 			Arfaxad.songs.add(song);
-			DefaultListModel<Song> songsLM = (DefaultListModel<Song>)mw.allSongs.getModel();
-			insert(songsLM, song);
-
-			DefaultListModel<Song.Slide> slidesLM = (DefaultListModel<Song.Slide>)mw.allSlides.getModel();
-			for (Song.Slide slide : song.slides)
-				insert(slidesLM, slide);
+			DefaultListModel<Bookmark> bookmarksLM = (DefaultListModel<Bookmark>)mw.bookmarks.getModel();
+			for (Bookmark bookmark : song.bookmarks())
+				insert(bookmarksLM, bookmark);
 
 			// Select song
-			mw.allSongs.setSelectedValue(song, true);
-			mw.allSlides.setSelectedValue(song.slides.get(0), true);
+			mw.bookmarks.setSelectedValue(song, true);
 
 			// Store to disk
 			if (original != null) song.file = original.file;
@@ -245,20 +241,20 @@ public class EditorWindow extends JFrame
 	}
 
 	@SuppressWarnings(value = { "unchecked" })
-	private <T extends Comparable<T>> void insert(DefaultListModel<T> lm, T obj) {
+	private void insert(DefaultListModel<Bookmark> lm, Bookmark obj) {
 		int len = lm.getSize();
 		if (len == 0) {
 			lm.addElement(obj);
 			return;
 		}
-		if (obj.compareTo(lm.get(0)) < 0) lm.insertElementAt(obj, 0);
-		else if (obj.compareTo(lm.get(len - 1)) > 0) lm.insertElementAt(obj, len);
+		if (Bookmark.COMPARATOR.compare(obj, lm.get(0)) < 0) lm.insertElementAt(obj, 0);
+		else if (Bookmark.COMPARATOR.compare(obj, lm.get(len - 1)) > 0) lm.insertElementAt(obj, len);
 		else {
 			int lt = 0;
 			int gt = len - 1;
 			while (gt - lt > 1) {
 				int mid = (lt + gt) >> 1;
-				int cmp = obj.compareTo(lm.get(mid));
+				int cmp = Bookmark.COMPARATOR.compare(obj, lm.get(mid));
 				if (cmp == 0) return;
 				else if (cmp < 0) gt = mid;
 				else lt = mid;
